@@ -12,6 +12,54 @@
 
 #ifdef OF_VIDEO_CAPTURE_DIRECTSHOW
 	#include "videoInput.h"
+    #include <map>
+/*
+    #define OF_CAMERACONTROL_FLAGS_AUTO        0X0001L
+    #define OF_CAMERACONTROL_FLAGS_MANUAL      0X0002L
+
+    #define OF_CAMERACONTROL_FLAGS_ABSOLUTE    0X0000L
+    #define OF_CAMERACONTROL_FLAGS_RELATIVE    0X0010L*/
+
+	class setting {
+        public:
+
+            string  propName;
+            long    propID;
+            long    min;
+            long    max;
+            long    SteppingDelta;
+            long    CurrentValue;
+            long    DefaultValue;
+            long    flags;
+            float   pctValue;
+
+            bool valToPct() {
+
+                float range = (float)max - (float)min;
+                if(range <= 0)return false;
+                if(SteppingDelta == 0) return false;
+
+                pctValue = (float)(CurrentValue - min ) / range;
+
+                return true;
+            }
+
+            string  print()
+            {
+                valToPct();
+                string settingsString = propName              +
+                                        " id: " + ofToString((int)propID) +
+                                        " min: " + ofToString((int)min) +
+                                        " max: " + ofToString((int)max) +
+                                        " SteppingDelta: " + ofToString((int)SteppingDelta) +
+                                        " currentValue: " + ofToString((int)CurrentValue) +
+                                        " pctValue: " + ofToString((float)pctValue) +
+                                        " defaultValue: " + ofToString((int)DefaultValue) +
+                                        " flags: " + ofToString((int)flags);
+                return settingsString;
+            }
+	};
+
 #endif
 
 #ifdef OF_VIDEO_CAPTURE_UNICAP
@@ -45,9 +93,21 @@ class goVideoGrabber : public ofBaseVideo{
 		void 			setVerbose(bool bTalkToMe);
 		void			setDeviceID(int _deviceID);
 #ifdef OF_VIDEO_CAPTURE_QUICKTIME
-		void setDeviceID(string _deviceID);
+		void            setDeviceID(string _deviceID);
 #endif
-	
+
+#ifdef OF_VIDEO_CAPTURE_DIRECTSHOW
+        void                    showSettingsWindow();
+        void                    setCameraSettings(map<string, setting> settings);
+        void                    setCameraSetting(setting s);
+        map<string, setting>    getCameraSettings();
+        setting                 getCameraSetting(long propID, string propName);
+        void                    setFilterSettings(map<string, setting> settings);
+        void                    setFilterSetting(setting s);
+        map<string, setting>    getFilterSettings();
+        setting                 getFilterSetting(long propID, string propName);
+#endif
+
 		void			setDesiredFrameRate(int framerate);
 		void 			setUseTexture(bool bUse);
 		void 			draw(float x, float y, float w, float h);
@@ -78,7 +138,7 @@ class goVideoGrabber : public ofBaseVideo{
 	    unsigned char * 		pixels;
 		int						attemptFramerate;
 		bool 					bIsFrameNew;
-	
+
 		//--------------------------------- quicktime
 		#ifdef OF_VIDEO_CAPTURE_QUICKTIME
 			vector<string>			deviceVec;
@@ -93,7 +153,7 @@ class goVideoGrabber : public ofBaseVideo{
 			bool 				bSgInited;
 			string				deviceName;
 			SGGrabCompleteBottleUPP	myGrabCompleteProc;
-			
+
 			bool				qtInitSeqGrabber();
 			bool				qtCloseSeqGrabber();
 			bool				qtSelectDevice(int deviceNumber, bool didWeChooseADevice);

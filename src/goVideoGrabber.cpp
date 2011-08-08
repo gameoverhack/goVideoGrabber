@@ -10,7 +10,7 @@ static ComponentResult 	frameIsGrabbedProc(SGChannel sgChan, short nBufferNum, B
 static ComponentResult  frameIsGrabbedProc(SGChannel sgChan, short nBufferNum, Boolean *pbDone, long lRefCon){
 
  	ComponentResult err = SGGrabFrameComplete( sgChan, nBufferNum, pbDone );
-	
+
 	bool * havePixChanged = (bool *)lRefCon;
 	*havePixChanged = true;
 
@@ -141,12 +141,12 @@ void goVideoGrabber::listDevices(){
 			SGDeviceName nameRec;
 			nameRec = (*deviceList)->entry[i];
 			SGDeviceInputList deviceInputList = nameRec.inputs;
-			
+
 			int numInputs = 0;
 			if( deviceInputList ) numInputs = ((*deviceInputList)->count);
 
 			memcpy(pascalName, (*deviceList)->entry[i].name, sizeof(char) * 64);
-			
+
 			//this means we can use the capture method
 			if(nameRec.flags != sgDeviceNameFlagDeviceUnavailable){
 
@@ -162,13 +162,13 @@ void goVideoGrabber::listDevices(){
 					}
 
 					printf( "device[%i] %s - %s\n",  deviceCount, p2cstr(pascalName), p2cstr(pascalNameInput) );
-	
+
 					// push back name sto vector so we can setDevid ID by name too...MAC only
 					deviceVec.push_back((string)p2cstr(pascalNameInput));
-					
+
 					//we count this way as we need to be able to distinguish multiple inputs as devices
 					deviceCount++;
-					
+
 				}
 
 			}else{
@@ -251,11 +251,11 @@ void goVideoGrabber::setDeviceID(string _deviceID){
 			break;
 		}
 	}
-	cout << "!!!!!!!!!!!!! " << _deviceID << " = " << deviceID << endl;
+	//cout << "!!!!!!!!!!!!! " << _deviceID << " = " << deviceID << endl;
 	if (deviceID != -1) {
 		bChooseDevice = true;
 	} else bChooseDevice = false;
-	
+
 }
 //---------------------------------
 #endif
@@ -322,11 +322,11 @@ void goVideoGrabber::grabFrame(){
 			// or else we will process way more than necessary
 			// (ie opengl is running at 60fps +, capture at 30fps)
 			if (bHavePixelsChanged){
-				
+
 				#if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
 					convertPixels(offscreenGWorldPixels, pixels, width, height);
 				#endif
-				
+
 				if (bUseTexture){
 					tex.loadData(pixels, width, height, GL_RGB);
 				}
@@ -908,18 +908,18 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 
 		offscreenGWorldPixels 	= (unsigned char*)malloc(4 * width * height + 32);
 		pixels					= new unsigned char[width*height*3];
-		
+
 		#if defined(TARGET_OSX) && defined(__BIG_ENDIAN__)
-			QTNewGWorldFromPtr (&(videogworld), k32ARGBPixelFormat, &(videoRect), NULL, NULL, 0, (offscreenGWorldPixels), 4 * width);		
+			QTNewGWorldFromPtr (&(videogworld), k32ARGBPixelFormat, &(videoRect), NULL, NULL, 0, (offscreenGWorldPixels), 4 * width);
 		#else
 			QTNewGWorldFromPtr (&(videogworld), k24RGBPixelFormat, &(videoRect), NULL, NULL, 0, (pixels), 3 * width);
-		#endif		
-		
+		#endif
+
 		LockPixels(GetGWorldPixMap(videogworld));
 		SetGWorld (videogworld, NULL);
 		SGSetGWorld(gSeqGrabber, videogworld, nil);
 
-		
+
 		//---------------------------------- 4 - device selection
 		bool didWeChooseADevice = bChooseDevice;
 		bool deviceIsSelected	=  false;
@@ -954,25 +954,25 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 	 	err = SGSetChannelUsage(gVideoChannel,seqGrabPreview);
 		if ( err != noErr ) goto bail;
 
-	
+
 		//----------------- callback method for notifying new frame
 		err = SGSetChannelRefCon(gVideoChannel, (long)&bHavePixelsChanged );
 		if(!err) {
 
-			VideoBottles vb; 
-			/* get the current bottlenecks */ 
-			vb.procCount = 9; 
-			err = SGGetVideoBottlenecks(gVideoChannel, &vb); 
-			if (!err) { 			
+			VideoBottles vb;
+			/* get the current bottlenecks */
+			vb.procCount = 9;
+			err = SGGetVideoBottlenecks(gVideoChannel, &vb);
+			if (!err) {
 				myGrabCompleteProc = NewSGGrabCompleteBottleUPP(frameIsGrabbedProc);
 				vb.grabCompleteProc = myGrabCompleteProc;
-			
-				/* add our GrabFrameComplete function */ 
-				err = SGSetVideoBottlenecks(gVideoChannel, &vb); 	
+
+				/* add our GrabFrameComplete function */
+				err = SGSetVideoBottlenecks(gVideoChannel, &vb);
 			}
-		
+
 		}
-				
+
 		err = SGSetChannelBounds(gVideoChannel, &videoRect);
 		if ( err != noErr ) goto bail;
 
@@ -984,14 +984,14 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 
 		bGrabberInited = true;
 		loadSettings();
-		
+
 		if( attemptFramerate >= 0 ){
 			err = SGSetFrameRate(gVideoChannel, IntToFixed(attemptFramerate) );
 			if ( err != noErr ){
 				ofLog(OF_LOG_ERROR,"initGrabber error setting framerate to %i", attemptFramerate);
-			}		
+			}
 		}
-		
+
 		ofLog(OF_LOG_NOTICE,"end setup goVideoGrabber");
 		ofLog(OF_LOG_NOTICE,"-------------------------------------\n");
 
@@ -1041,7 +1041,7 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 		width = w;
 		height = h;
 		bGrabberInited = false;
-		
+
 		if( attemptFramerate >= 0){
 			VI.setIdealFramerate(device, attemptFramerate);
 		}
@@ -1149,6 +1149,149 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 	//---------------------------------
 
 }
+
+#ifdef OF_VIDEO_CAPTURE_DIRECTSHOW
+void goVideoGrabber::showSettingsWindow() {
+    if (bGrabberInited) VI.showSettingsWindow(deviceID);
+}
+
+void goVideoGrabber::setCameraSettings(map<string, setting> settings) {
+    if (bGrabberInited) {
+
+        map<string, setting>::iterator it;
+
+        for (it = settings.begin(); it != settings.end(); it++) {
+            setCameraSetting(it->second);
+        }
+    }
+}
+
+void goVideoGrabber::setCameraSetting(setting s) {
+    if (bGrabberInited) {
+        //VI.setVideoSettingCamera(deviceID, s.propID, s.CurrentValue, s.flags); //, 2, false); // doesn't seem to work for me, why oh why?
+        s.valToPct(); // to be sure
+        VI.setVideoSettingCameraPct(deviceID, s.propID, s.pctValue, s.flags);
+    }
+}
+
+map<string, setting> goVideoGrabber::getCameraSettings() {
+
+    if (bGrabberInited) {
+        /*
+		long propPan;
+		long propTilt;
+		long propRoll;
+		long propZoom;
+		long propExposure;
+		long propIris;
+		long propFocus;
+		*/
+		map<string, setting> settings;
+
+        settings.insert(pair<string, setting>("propPan", getCameraSetting(VI.propPan, "propPan")));
+        settings.insert(pair<string, setting>("propTilt", getCameraSetting(VI.propTilt, "propTilt")));
+        settings.insert(pair<string, setting>("propRoll", getCameraSetting(VI.propRoll, "propRoll")));
+        settings.insert(pair<string, setting>("propZoom", getCameraSetting(VI.propZoom, "propZoom")));
+        settings.insert(pair<string, setting>("propExposure", getCameraSetting(VI.propExposure, "propExposure")));
+        settings.insert(pair<string, setting>("propIris", getCameraSetting(VI.propIris, "propIris")));
+        settings.insert(pair<string, setting>("propFocus", getCameraSetting(VI.propFocus, "propFocus")));
+
+        return settings;
+    }
+
+}
+setting goVideoGrabber::getCameraSetting(long propID, string propName) {
+
+    if (bGrabberInited) {
+
+        setting s;
+
+        s.propName  = propName;
+        s.propID    = propID;
+
+        VI.getVideoSettingCamera(deviceID, s.propID, s.min, s.max, s.SteppingDelta, s.CurrentValue, s.flags, s.DefaultValue);
+
+        s.valToPct();
+
+        return s;
+    }
+
+}
+
+void goVideoGrabber::setFilterSettings(map<string, setting> settings) {
+    if (bGrabberInited) {
+
+        map<string, setting>::iterator it;
+
+        for (it = settings.begin(); it != settings.end(); it++) {
+            setFilterSetting(it->second);
+        }
+    }
+}
+
+void goVideoGrabber::setFilterSetting(setting s) {
+    if (bGrabberInited) {
+        //VI.setVideoSettingFilter(deviceID, s.propID, s.CuurentValue, s.flags, false); //, 2, false); // doesn't seem to work for me, why oh why?
+        s.valToPct(); // to be sure
+        //cout << s.pctValue << endl;
+        //s.pctValue = 0.0;
+        cout << s.print() << endl;
+        //s.pctValue = 0.0980320;
+        VI.setVideoSettingFilterPct(deviceID, s.propID, s.pctValue, 2);
+    }
+}
+
+map<string, setting> goVideoGrabber::getFilterSettings() {
+
+    if (bGrabberInited) {
+        /*
+        long propBrightness;
+		long propContrast;
+		long propHue;
+		long propSaturation;
+		long propSharpness;
+		long propGamma;
+		long propColorEnable;
+		long propWhiteBalance;
+		long propBacklightCompensation;
+		long propGain;
+		*/
+		map<string, setting> settings;
+
+        settings.insert(pair<string, setting>("propBrightness", getFilterSetting(VI.propBrightness, "propBrightness")));
+        settings.insert(pair<string, setting>("propContrast", getFilterSetting(VI.propContrast, "propContrast")));
+        settings.insert(pair<string, setting>("propHue", getFilterSetting(VI.propHue, "propHue")));
+        settings.insert(pair<string, setting>("propSaturation", getFilterSetting(VI.propSaturation, "propSaturation")));
+        settings.insert(pair<string, setting>("propSharpness", getFilterSetting(VI.propSharpness, "propSharpness")));
+        settings.insert(pair<string, setting>("propGamma", getFilterSetting(VI.propGamma, "propGamma")));
+        settings.insert(pair<string, setting>("propColorEnable", getFilterSetting(VI.propColorEnable, "propColorEnable")));
+        settings.insert(pair<string, setting>("propWhiteBalance", getFilterSetting(VI.propWhiteBalance, "propWhiteBalance")));
+        settings.insert(pair<string, setting>("propBacklightCompensation", getFilterSetting(VI.propBacklightCompensation, "propBacklightCompensation")));
+        settings.insert(pair<string, setting>("propGain", getFilterSetting(VI.propGain, "propGain")));
+
+        return settings;
+    }
+
+}
+setting goVideoGrabber::getFilterSetting(long propID, string propName) {
+
+    if (bGrabberInited) {
+
+        setting s;
+
+        s.propName  = propName;
+        s.propID    = propID;
+
+        VI.getVideoSettingFilter(deviceID, s.propID, s.min, s.max, s.SteppingDelta, s.CurrentValue, s.flags, s.DefaultValue);
+
+        s.valToPct();
+
+        return s;
+    }
+
+}
+
+#endif
 
 //------------------------------------
 void goVideoGrabber::setUseTexture(bool bUse){
