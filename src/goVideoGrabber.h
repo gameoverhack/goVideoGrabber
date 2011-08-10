@@ -97,6 +97,7 @@ class goVideoGrabber : public ofBaseVideo{
 #endif
 
 #ifdef OF_VIDEO_CAPTURE_DIRECTSHOW
+        void                    setRequestedMediaSubType(int mediaType);
         void                    showSettingsWindow();
         void                    setCameraSettings(map<string, setting> settings);
         void                    setCameraSetting(setting s);

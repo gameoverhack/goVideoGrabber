@@ -1045,6 +1045,7 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 		if( attemptFramerate >= 0){
 			VI.setIdealFramerate(device, attemptFramerate);
 		}
+
 		bool bOk = VI.setupDevice(device, width, height);
 
 		int ourRequestedWidth = width;
@@ -1151,6 +1152,10 @@ bool goVideoGrabber::initGrabber(int w, int h, bool setUseTexture){
 }
 
 #ifdef OF_VIDEO_CAPTURE_DIRECTSHOW
+void goVideoGrabber::setRequestedMediaSubType(int mediaType) {
+    VI.setRequestedMediaSubType(mediaType);
+}
+
 void goVideoGrabber::showSettingsWindow() {
     if (bGrabberInited) VI.showSettingsWindow(deviceID);
 }
@@ -1168,9 +1173,9 @@ void goVideoGrabber::setCameraSettings(map<string, setting> settings) {
 
 void goVideoGrabber::setCameraSetting(setting s) {
     if (bGrabberInited) {
-        //VI.setVideoSettingCamera(deviceID, s.propID, s.CurrentValue, s.flags); //, 2, false); // doesn't seem to work for me, why oh why?
-        s.valToPct(); // to be sure
-        VI.setVideoSettingCameraPct(deviceID, s.propID, s.pctValue, s.flags);
+        VI.setVideoSettingCamera(deviceID, s.propID, s.CurrentValue, s.flags); //, 2, false); // doesn't seem to work for me, why oh why?
+        //s.valToPct(); // to be sure
+        //VI.setVideoSettingCameraPct(deviceID, s.propID, s.pctValue, s.flags);
     }
 }
 
@@ -1231,13 +1236,9 @@ void goVideoGrabber::setFilterSettings(map<string, setting> settings) {
 
 void goVideoGrabber::setFilterSetting(setting s) {
     if (bGrabberInited) {
-        //VI.setVideoSettingFilter(deviceID, s.propID, s.CuurentValue, s.flags, false); //, 2, false); // doesn't seem to work for me, why oh why?
-        s.valToPct(); // to be sure
-        //cout << s.pctValue << endl;
-        //s.pctValue = 0.0;
-        cout << s.print() << endl;
-        //s.pctValue = 0.0980320;
-        VI.setVideoSettingFilterPct(deviceID, s.propID, s.pctValue, 2);
+        VI.setVideoSettingFilter(deviceID, s.propID, s.CurrentValue, s.flags);//, false); //, 2, false); // doesn't seem to work for me, why oh why?
+        //s.valToPct(); // to be sure
+        //VI.setVideoSettingFilterPct(deviceID, s.propID, s.pctValue, 2);
     }
 }
 
